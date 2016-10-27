@@ -31,6 +31,9 @@
 #include "IcuUtils.h"
 #include "MediaPlayerService.h"
 #include "ResourceManagerService.h"
+#ifdef METADATA_CAMERA_SOURCE
+#include "CameraService.h"
+#endif
 
 using namespace android;
 
@@ -44,7 +47,11 @@ int main(int argc __unused, char **argv __unused)
     InitializeIcuOrDie();
     MediaPlayerService::instantiate();
     ResourceManagerService::instantiate();
+/*<<<<<<< HEAD
 #ifdef NO_CAMERA_SERVER
+=======*/
+#ifdef METADATA_CAMERA_SOURCE
+/*>>>>>>> 3edaf4a... av: Add support for CameraSource as metadata type*/
     CameraService::instantiate();
 #endif
     registerExtensions();

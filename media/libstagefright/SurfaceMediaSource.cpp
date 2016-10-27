@@ -23,7 +23,9 @@
 #include <media/stagefright/MediaDefs.h>
 #include <media/stagefright/MetaData.h>
 #include <OMX_IVCommon.h>
+#ifndef METADATA_CAMERA_SOURCE
 #include <media/hardware/HardwareAPI.h>
+#endif
 #include <media/hardware/MetadataBufferType.h>
 
 #include <ui/GraphicBuffer.h>
@@ -127,6 +129,7 @@ status_t SurfaceMediaSource::setFrameRate(int32_t fps)
     return OK;
 }
 
+#ifndef METADATA_CAMERA_SOURCE
 MetadataBufferType SurfaceMediaSource::metaDataStoredInVideoBuffers() const {
     ALOGV("isMetaDataStoredInVideoBuffers");
 #ifdef CAMCORDER_GRALLOC_SOURCE
@@ -135,6 +138,12 @@ MetadataBufferType SurfaceMediaSource::metaDataStoredInVideoBuffers() const {
     return kMetadataBufferTypeANWBuffer;
 #endif
 }
+#else
+bool SurfaceMediaSource::isMetaDataStoredInVideoBuffers() const {
+    ALOGV("isMetaDataStoredInVideoBuffers");
+    return true;
+}
+#endif
 
 int32_t SurfaceMediaSource::getFrameRate( ) const {
     ALOGV("getFrameRate");
@@ -254,6 +263,7 @@ sp<MetaData> SurfaceMediaSource::getFormat()
     return meta;
 }
 
+/*<<<<<<< HEAD
 #ifdef CAMCORDER_GRALLOC_SOURCE
 // Pass the data to the MediaBuffer. Pass in only the metadata
 // The metadata passed consists of two parts:
@@ -283,6 +293,9 @@ static void passMetadataBuffer(MediaBuffer **buffer,
 }
 #endif
 
+=======*/
+#ifndef METADATA_CAMERA_SOURCE
+/*>>>>>>> 3edaf4a... av: Add support for CameraSource as metadata type*/
 // Pass the data to the MediaBuffer. Pass in only the metadata
 // Note: Call only when you have the lock
 void SurfaceMediaSource::passMetadataBuffer_l(MediaBuffer **buffer,
@@ -299,6 +312,34 @@ void SurfaceMediaSource::passMetadataBuffer_l(MediaBuffer **buffer,
     ALOGV("handle = %p, offset = %zu, length = %zu",
             bufferHandle, (*buffer)->range_length(), (*buffer)->range_offset());
 }
+#else
+// Pass the data to the MediaBuffer. Pass in only the metadata
+// The metadata passed consists of two parts:
+// 1. First, there is an integer indicating that it is a GRAlloc
+// source (kMetadataBufferTypeGrallocSource)
+// 2. This is followed by the buffer_handle_t that is a handle to the
+// GRalloc buffer. The encoder needs to interpret this GRalloc handle
+// and encode the frames.
+// --------------------------------------------------------------
+// |  kMetadataBufferTypeGrallocSource | sizeof(buffer_handle_t) |
+// --------------------------------------------------------------
+// Note: Call only when you have the lock
+static void passMetadataBuffer(MediaBuffer **buffer,
+        buffer_handle_t bufferHandle) {
+    *buffer = new MediaBuffer(4 + sizeof(buffer_handle_t));
+    char *data = (char *)(*buffer)->data();
+    if (data == NULL) {
+        ALOGE("Cannot allocate memory for metadata buffer!");
+        return;
+    }
+    OMX_U32 type = kMetadataBufferTypeGrallocSource;
+    memcpy(data, &type, 4);
+    memcpy(data + 4, &bufferHandle, sizeof(buffer_handle_t));
+
+    ALOGV("handle = %p, , offset = %zu, length = %zu",
+            bufferHandle, (*buffer)->range_length(), (*buffer)->range_offset());
+}
+#endif
 
 status_t SurfaceMediaSource::read(
         MediaBuffer **buffer, const ReadOptions * /* options */) {
@@ -385,10 +426,17 @@ status_t SurfaceMediaSource::read(
     mNumFramesEncoded++;
     // Pass the data to the MediaBuffer. Pass in only the metadata
 
+/*<<<<<<< HEAD
 #ifdef CAMCORDER_GRALLOC_SOURCE
     passMetadataBuffer(buffer, mSlots[mCurrentSlot].mGraphicBuffer->handle);
 #else
     passMetadataBuffer_l(buffer, mSlots[mCurrentSlot].mGraphicBuffer->getNativeBuffer());
+=======*/
+#ifndef METADATA_CAMERA_SOURCE
+    passMetadataBuffer_l(buffer, mSlots[mCurrentSlot].mGraphicBuffer->getNativeBuffer());
+#else
+    passMetadataBuffer(buffer, mSlots[mCurrentSlot].mGraphicBuffer->handle);
+/*>>>>>>> 3edaf4a... av: Add support for CameraSource as metadata type*/
 #endif
 
     (*buffer)->setObserver(this);

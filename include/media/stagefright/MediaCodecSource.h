@@ -37,7 +37,13 @@ struct MediaCodecSource : public MediaSource,
                           public MediaBufferObserver {
     enum FlagBits {
         FLAG_USE_SURFACE_INPUT      = 1,
+/*<<<<<<< HEAD
         FLAG_USE_METADATA_INPUT     = 2,
+=======*/
+#ifdef METADATA_CAMERA_SOURCE
+        FLAG_USE_METADATA_INPUT     = 2,
+#endif
+/*>>>>>>> 3edaf4a... av: Add support for CameraSource as metadata type*/
         FLAG_PREFER_SOFTWARE_CODEC  = 4,  // used for testing only
     };
 
