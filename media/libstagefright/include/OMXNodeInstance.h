@@ -21,7 +21,9 @@
 #include "OMX.h"
 
 #include <utils/RefBase.h>
+#ifndef METADATA_CAMERA_SOURCE
 #include <utils/SortedVector.h>
+#endif
 #include <utils/threads.h>
 
 namespace android {
@@ -151,10 +153,16 @@ private:
     OMX::node_id mNodeID;
     OMX_HANDLETYPE mHandle;
     sp<IOMXObserver> mObserver;
+/*<<<<<<< HEAD*/
     atomic_bool mDying;
+/*=======
+    bool mDying;*/
+#ifndef METADATA_CAMERA_SOURCE
+/*>>>>>>> 4ec0057... av: Add support for CameraSource as metadata type UPDATES*/
     bool mSailed;  // configuration is set (no more meta-mode changes)
     bool mQueriedProhibitedExtensions;
     SortedVector<OMX_INDEXTYPE> mProhibitedExtensions;
+#endif
     bool mIsSecure;
 
     // Lock only covers mGraphicBufferSource.  We can't always use mLock
@@ -208,7 +216,9 @@ private:
     OMX::buffer_id findBufferID(OMX_BUFFERHEADERTYPE *bufferHeader);
     void invalidateBufferID(OMX::buffer_id buffer);
 
+#ifndef METADATA_CAMERA_SOURCE
     bool isProhibitedIndex_l(OMX_INDEXTYPE index);
+#endif
 
     status_t useGraphicBuffer2_l(
             OMX_U32 portIndex, const sp<GraphicBuffer> &graphicBuffer,
