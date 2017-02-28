@@ -6176,9 +6176,9 @@ void ACodec::BaseState::onInputBufferFilled(const sp<AMessage> &msg) {
                 case kMetadataBufferTypeCameraSource:
 #endif
                 case kMetadataBufferTypeInvalid:
-#ifdef CAMCORDER_GRALLOC_SOURCE
+/*#ifdef CAMCORDER_GRALLOC_SOURCE
                 case kMetadataBufferTypeCameraSource:
-#endif
+#endif*/
                     break;
 #ifndef OMX_ANDROID_COMPILE_AS_32BIT_ON_64BIT_PLATFORMS
                 case kMetadataBufferTypeNativeHandleSource:
